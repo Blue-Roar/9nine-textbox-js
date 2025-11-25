@@ -1,0 +1,25 @@
+characters:
+  miyako:
+    full_name: 九条都
+    emotion_count: 9
+    font: font3.ttf
+  sora:
+    full_name: 新海天
+    emotion_count: 9
+    font: font3.ttf
+  haruka:
+    full_name: 香坂春风
+    emotion_count: 9
+    font: font3.ttf
+  noa:
+    full_name: 结城希亚
+    emotion_count: 9
+    font: font3.ttf
+  ghost:
+    full_name: 幽灵
+    emotion_count: 9
+    font: font3.ttf
+  sophitia:
+    full_name: 索菲提亚
+    emotion_count: 9
+    font: font3.ttf

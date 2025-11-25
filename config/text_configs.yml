@@ -1,0 +1,87 @@
+text_configs:
+  miyako:
+    - text: 九
+      position: [759, 73]
+      font_color: [179, 244, 92]
+      font_size: 186
+    - text: 条
+      position: [943, 110]
+      font_color: [255, 255, 255]
+      font_size: 147
+    - text: 都
+      position: [1093, 175]
+      font_color: [255, 255, 255]
+      font_size: 92
+  sora:
+    - text: 新
+      position: [759, 73]
+      font_color: [250, 237, 158]
+      font_size: 186
+    - text: 海
+      position: [943, 110]
+      font_color: [255, 255, 255]
+      font_size: 147
+    - text: 天
+      position: [1093, 175]
+      font_color: [255, 255, 255]
+      font_size: 92
+  haruka:
+    - text: 香
+      position: [759, 73]
+      font_color: [165, 227, 252]
+      font_size: 186
+    - text: 坂
+      position: [949, 175]
+      font_color: [255, 255, 255]
+      font_size: 92
+    - text: 春
+      position: [1039, 117]
+      font_color: [255, 255, 255]
+      font_size: 147
+    - text: 风
+      position: [1183, 175]
+      font_color: [255, 255, 255]
+      font_size: 92
+  noa:
+    - text: 结
+      position: [759, 73]
+      font_color: [249, 116, 121]
+      font_size: 186
+    - text: 城
+      position: [949, 175]
+      font_color: [255, 255, 255]
+      font_size: 92
+    - text: 希
+      position: [1039, 117]
+      font_color: [255, 255, 255]
+      font_size: 147
+    - text: 亚
+      position: [1183, 175]
+      font_color: [255, 255, 255]
+      font_size: 92
+  ghost:
+    - text: 幽
+      position: [759,73]
+      font_color: [212, 205, 209]
+      font_size: 186
+    - text: 灵
+      position: [949, 175]
+      font_color: [255, 255, 255]
+      font_size: 92
+  sophitia:
+    - text: 索
+      position: [759, 73]
+      font_color: [165, 227, 252]
+      font_size: 186
+    - text: 菲
+      position: [949, 175]
+      font_color: [255, 255, 255]
+      font_size: 92
+    - text: 提
+      position: [1039, 117]
+      font_color: [255, 255, 255]
+      font_size: 147
+    - text: 娅
+      position: [1183, 175]
+      font_color: [255, 255, 255]
+      font_size: 92

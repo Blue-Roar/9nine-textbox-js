@@ -1,0 +1,575 @@
+const STRETCH_MODES = {
+    "stretch": "撑满画布",
+    "stretch_x": "横向拉伸",
+    "stretch_y": "纵向拉伸",
+    "zoom_x": "水平缩放",
+    "zoom_y": "垂直缩放",
+    "original": "原始尺寸"
+}
+const TEXT_POSITION = [728,355]; // 文本范围起始位置
+const TEXT_OVER = [2339,800];  // 文本范围右下角位置
+const SHADOW_OFFSET = [2, 2]; // 阴影偏移量
+const SHADOW_COLOR = [0, 0, 0]; // 黑色阴影
+const OPTION_DEFAULTS = {
+    "background": "bg015a",
+    "chara": "sophitia",
+    "font": "default",
+    "stretch_image": "zoom_x"
+};
+
+// 角色配置字典
+var characters = {};
+// 角色文字配置字典
+var text_configs = {};
+var backgrounds = {};
+var fonts = {};
+var local_fonts = {};
+
+function initBackgrounds() {
+    // 渲染背景选择
+    let backgrounds_div = $("#backgrounds_div");
+    backgrounds_div.empty();
+
+    for (const [key, value] of Object.entries(backgrounds)) {
+        let bg_html = `
+        <div class="col-6 col-md-3">
+            <label class="form-imagecheck mb-2">
+                <input name="background" type="radio" value="${key}" class="form-imagecheck-input" onchange="updateCanvas()" onclick="updateCanvas()"${key==OPTION_DEFAULTS.background ? " checked" : ""}/>
+                <span class="form-imagecheck-figure" title="${value.name}" data-bs-toggle="tooltip">
+                    <img class="form-imagecheck-image" src="./assets/background/${value.file}"/>
+                </span>
+            </label>
+        </div>
+        `;
+        backgrounds_div.append(bg_html);
+    }
+
+    let background_options_div = $("#background_options_div");
+    background_options_div.empty();
+    for (const [key, value] of Object.entries(STRETCH_MODES)) {
+        let option_html = `
+        <label class="form-check form-check-inline flex-grow-1 my-0">
+            <input class="form-check-input" type="radio" name="stretch_image" value="${key}" onchange="updateCanvas()" onclick="updateCanvas()"${key==OPTION_DEFAULTS.stretch_image ? " checked" : ""}>
+            <span class="form-check-label">${value}</span>
+        </label>
+        `;
+        background_options_div.append(option_html);
+    }
+}
+function initCharacters() {
+    // 渲染角色选择
+    let characters_div = $("#characters_div");
+    characters_div.empty();
+    for (const [key, value] of Object.entries(characters)) {
+        let char_html = `
+        <div class="col-auto">
+            <label class="form-imagecheck mb-2">
+                <input name="character" type="radio" value="${key}" class="form-imagecheck-input" onchange="initEmotions('${key}');updateCanvas()" onclick="initEmotions('${key}');updateCanvas()"${key==OPTION_DEFAULTS.chara ? " checked" : ""}/>
+                <span class="form-imagecheck-figure" title="${value.full_name}" data-bs-toggle="tooltip">
+                    <span class="avatar avatar-xl" style="background-image: url('./assets/chara/${key}/${key} (1).png')"></span>
+                </span>
+            </label>
+        </div>
+        `;
+        characters_div.append(char_html);
+    }
+}
+function initEmotions(character) {
+    // 渲染表情选择
+    let emotions_div = $("#emotions_div");
+    emotions_div.empty();
+    for (i=1; i<characters[character].emotion_count; i++) {
+        let emotion_html = `
+        <div class="col-auto">
+            <label class="form-imagecheck mb-2">
+                <input name="emotion" type="radio" value="${i}" class="form-imagecheck-input" onchange="updateCanvas()" onclick="updateCanvas()"/>
+                <span class="form-imagecheck-figure">
+                    <img class="form-imagecheck-image" height="112" src="./assets/chara/${character}/${character} (${i}).png"/>
+                </span>
+            </label>
+        </div>
+        `;
+        emotions_div.append(emotion_html);
+    }
+    $('input[name="emotion"]').first().click();
+}
+function initFonts() {
+    let text_fonts_div = $("#text_fonts_div");
+    text_fonts_div.empty();
+
+    if ($("#text_fonts_styles").length) $("#text_fonts_styles").remove();
+    let text_fonts_styles = $('<style></style>').appendTo('head');
+    text_fonts_styles.attr('type', 'text/css');
+    text_fonts_styles.attr('id', 'text_fonts_styles');
+
+    text_fonts_div.append(`
+    <label class="form-check form-check-inline flex-grow-1 my-0 d-flex align-items-center">
+        <input name="text_font" type="radio" value="default" class="form-check-input" onchange="updateCanvas()" onclick="updateCanvas()" checked/>
+        <span class="form-check-label ms-2 p-1 fs-2">浏览器默认</span>
+    </label>
+    `);
+
+    for (const [key, value] of Object.entries(fonts)) {
+        let font_html = `
+        <label class="form-check form-check-inline flex-grow-1 my-0 d-flex align-items-center">
+            <input name="text_font" type="radio" value="${key}" class="form-check-input" onchange="updateCanvas()" onclick="updateCanvas()"/>
+            <span class="form-check-label ms-2 p-1 fs-2" style="font-family: ${key};">${value.name}</span>
+        </label>
+        `;
+        text_fonts_div.append(font_html);
+
+        text_fonts_styles.append(`@font-face {
+            font-family: "${key}";
+            src: url("./assets/fonts/${value.file}");
+        }`);
+    }
+
+    text_fonts_div.append(`
+    <div class="d-flex align-items-center flex-wrap gap-1" id="custom_text_fonts_div">
+        <button class="btn btn-primary" onclick="initLocalFonts()">尝试加载本地字体</button>
+    </div>
+    `);
+}
+async function initLocalFonts() {
+    if (!('queryLocalFonts' in window)) {
+        console.log("当前浏览器不支持 queryLocalFonts API");
+        $("#custom_text_fonts_div").html(`<div class="alert alert-warning p-2 m-0" role="alert">当前浏览器不支持 <code>queryLocalFonts</code> API</div>`);
+        return;
+    }
+
+    try {
+        // 获取字体列表
+        const fonts = await window.queryLocalFonts();
+        if (fonts.length > 0){
+            fonts.forEach(font => {
+                if (font.style == "Regular" && font.fullName && /[\u4e00-\u9fff]/.test(font.fullName)) {
+                    local_fonts[font.family] = font;
+                }
+            });
+            if (Object.keys(local_fonts).length > 0) {
+                $("#custom_text_fonts_div").before(`
+                <label class="form-check form-check-inline flex-grow-1 my-0 d-flex align-items-center">
+                    <input name="text_font" type="radio" value="custom" class="form-check-input" onchange="updateCanvas()" onclick="updateCanvas()" for="custom_font"/>
+                    <span class="form-check-label ms-2 w-100">
+                        <select name="custom_font" class="form-select form-control-lg border-0 bg-transparent p-0" onclick="$('input[name=text_font][value=custom]').click()" onchange="updateCanvas()"></select>
+                    </span>
+                </label>
+                `);
+                buildLocalFonts();
+            } else {
+                $("#custom_text_fonts_div").before(`<div class="alert alert-warning p-2 m-0" role="alert">无可用中文字体</div>`);
+            }
+            $("#custom_text_fonts_div").remove();
+        } else {
+            $("#custom_text_fonts_div").html(`<button class="btn btn-primary" onclick="initLocalFonts()">尝试加载本地字体</button>`);
+            $("#custom_text_fonts_div").append(`<div class="alert alert-danger p-2 m-0" role="alert">未授权访问本地字体</div>`);
+        }
+    } catch (err) {
+        console.error("获取字体失败:", err);
+    }
+}
+function buildLocalFonts() {
+    for (const [key, value] of Object.entries(local_fonts)) {
+        let font = {
+            "family" : value.family,
+            "fullName" : value.fullName.split(" ")[0]
+        }
+        let font_option = $('<option></option>');
+        font_option.val(key);
+        font_option.attr("style", `font-family: ${key};`);
+        font_option.attr("data-custom-properties", JSON.stringify(font));
+        font_option.text(`${font.fullName}${(font.family!=font.fullName)?" ("+font.family+")":""}`);
+        $("select[name='custom_font']").append(font_option);
+    }
+    
+    window.TomSelect && (new TomSelect(el = $("select[name='custom_font']")[0], {
+        copyClassesToDropdown: false,
+        dropdownParent: 'body',
+        controlInput: '<input>',
+        onDropdownOpen: function () {
+            $('input[name=text_font][value=custom]').click();
+        },
+        onInitialize:function(){
+            $('.ts-control').addClass('p-0');
+        },
+        render:{
+            item:function(data,escape){
+                let font = JSON.parse(data.customProperties);
+                return `<div style="font-family:${font.family}">${escape(font.fullName)}</div>`;
+            },
+            option:function(data,escape){
+                let font = JSON.parse(data.customProperties);
+                return `<div><span style="font-family:${font.family}">${escape(font.fullName)}</span> (${escape(font.family)})</div>`;
+            },
+            no_results:function(data,escape){
+                return '<div class="no-results">没有找到对应字体</div>';
+            },
+        },
+    }));
+
+}
+
+function updateCanvas() {
+    let canvas = $('#canvas')[0];
+    let ctx = canvas.getContext("2d");
+
+    // 清空画布
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if ($('input[name="background"]:checked').val()) {
+        let background = $('input[name="background"]:checked').next().children()[0];
+        let dest=[0,0];
+        let size=[0,0];
+        let scale=1;
+        switch ($('input[name="stretch_image"]:checked').val()) {
+            case "stretch_x":
+                // 使宽度填满画布，垂直居中
+                size[0] = canvas.width;
+                size[1] = background.naturalHeight;
+                dest[1] = Math.round((canvas.height - size[1]) / 2);
+                break;
+            case "stretch_y":
+                // 使高度填满画布，水平居中
+                size[0] = background.naturalWidth;
+                size[1] = canvas.height;
+                dest[0] = Math.round((canvas.width - size[0]) / 2);
+                break;
+            case "zoom_x": {
+                // 缩放使宽度填满画布并保持纵横比，垂直居中
+                scale = canvas.width / background.naturalWidth;
+                size[0] = canvas.width;
+                size[1] = Math.round(background.naturalHeight * scale);
+                dest[1] = Math.round((canvas.height - size[1]) / 2);
+                break;
+            }
+            case "zoom_y": {
+                // 缩放使高度填满画布并保持纵横比，水平居中
+                scale = canvas.height / background.naturalHeight;
+                size[0] = Math.round(background.naturalWidth * scale);
+                size[1] = canvas.height;
+                dest[0] = Math.round((canvas.width - size[0]) / 2);
+                break;
+            }
+            case "original":
+                // 原始尺寸，居中
+                size[0] = background.naturalWidth;
+                size[1] = background.naturalHeight;
+                dest[0] = Math.round((canvas.width - size[0]) / 2);
+                dest[1] = Math.round((canvas.height - size[1]) / 2);
+                break;
+            case "stretch":
+            default:
+                size[0] = canvas.width;
+                size[1] = canvas.height;
+                break;
+        }
+        ctx.drawImage(background, dest[0], dest[1], size[0], size[1]);
+        ctx.drawImage($('#custom_background_ui')[0], 0, 0, canvas.width, canvas.height);
+    }
+    
+    let character = $('input[name="character"]:checked').val();
+    if (character) {
+        if ($('input[name="emotion"]:checked')) ctx.drawImage($('input[name="emotion"]:checked').next().children()[0], 0, 134);
+        for (const [key, value] of Object.entries(text_configs[character])) {
+            ctx.font = `${value.font_size}px ${characters[character].font}`;
+
+            ctx.fillStyle = `rgb(${SHADOW_COLOR[0]}, ${SHADOW_COLOR[1]}, ${SHADOW_COLOR[2]})`;
+            ctx.fillText(value.text, value.position[0] + SHADOW_OFFSET[0], value.font_size + value.position[1] + SHADOW_OFFSET[1]);
+
+            ctx.fillStyle = `rgb(${value.font_color[0]}, ${value.font_color[1]}, ${value.font_color[2]})`;
+            ctx.fillText(value.text, value.position[0], value.font_size + value.position[1]);
+        }
+    }
+
+    let text = $('textarea[name="text"]').val();
+    let text_font = $('input[name="text_font"]:checked').val();
+    switch (text_font) {
+        case "default":
+            text_font = window.getComputedStyle(document.body)['fontFamily'];
+            break;
+        case "custom":
+            text_font = $('select[name="custom_font"]').val();
+            break;
+        default:
+            break;
+    }
+    let text_font_size = parseInt($('input[name="text_font_size"]').val());
+    let text_highlight = $('input[name="text_highlight"]:checked').val();
+    if (text) {
+        ctx.font = `${text_font_size}px ${text_font}`;
+        
+        // 自动换行绘制
+        const maxWidth = TEXT_OVER[0] - TEXT_POSITION[0];
+        const maxHeight = TEXT_OVER[1] - TEXT_POSITION[1];
+        const lineHeight = Math.floor(text_font_size * 1.2);
+        const maxLines = Math.floor(maxHeight / lineHeight) || 1;
+        let lines = [];
+
+        // 根据空格或换行进行单词换行，若无空格则按字符换行（适合中文）
+        // 先按换行分段处理，每个段落内部再按单词或字符换行，段落之间保留空行
+        const paragraphs = text.split('\n');
+        for (let p = 0; p < paragraphs.length; p++) {
+            const para = paragraphs[p];
+
+            if (para.indexOf(' ') !== -1) {
+                const words = para.split(' ');
+                let line = '';
+                for (let n = 0; n < words.length; n++) {
+                    const word = words[n];
+                    const testLine = line ? (line + ' ' + word) : word;
+                    const testWidth = ctx.measureText(testLine).width;
+                    if (testWidth > maxWidth && line) {
+                        lines.push(line);
+                        line = word;
+                        if (lines.length >= maxLines) break;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                if (lines.length < maxLines && line) lines.push(line);
+            } else {
+                let line = '';
+                for (let i = 0; i < para.length; i++) {
+                    const ch = para[i];
+                    const testLine = line + ch;
+                    const testWidth = ctx.measureText(testLine).width;
+                    if (testWidth > maxWidth && line) {
+                        lines.push(line);
+                        line = ch;
+                        if (lines.length >= maxLines) break;
+                    } else {
+                        line = testLine;
+                    }
+                }
+                if (lines.length < maxLines && line) lines.push(line);
+            }
+
+            if (lines.length >= maxLines) break;
+        }
+
+        // 绘制每一行（先阴影再主体）
+        for (let i = 0; i < Math.min(lines.length, maxLines); i++) {
+            const line = lines[i];
+            const x = TEXT_POSITION[0];
+            // 保持与原来单行位置一致：首行基线为 text_font_size + TEXT_POSITION[1]
+            const y = text_font_size + TEXT_POSITION[1] + i * lineHeight;
+
+            ctx.fillStyle = `rgb(${SHADOW_COLOR[0]}, ${SHADOW_COLOR[1]}, ${SHADOW_COLOR[2]})`;
+            ctx.fillText(line, x + SHADOW_OFFSET[0], y + SHADOW_OFFSET[1]);
+
+            ctx.fillStyle = `rgb(255, 255, 255)`;
+            ctx.fillText(line, x, y);
+        }
+
+        if (text_highlight) {
+            // 突出显示【文本】部分
+            let isHighlight = false;
+            for (let i = 0; i < Math.min(lines.length, maxLines); i++) {
+                const line = lines[i];
+                const x = TEXT_POSITION[0];
+                // 保持与原来单行位置一致：首行基线为 text_font_size + TEXT_POSITION[1]
+                const y = text_font_size + TEXT_POSITION[1] + i * lineHeight;
+
+                // 检查并切换绘制颜色
+                const parts = line.split(/(【|】)/g);
+                let currentX = x;
+
+                parts.forEach(part => {
+                    if (part === '【') {
+                        isHighlight = true;
+                    }
+                    if (isHighlight) {
+                        ctx.fillStyle = `rgb(${text_configs[character][0]['font_color'][0]},${text_configs[character][0]['font_color'][1]},${text_configs[character][0]['font_color'][2]})`
+                        ctx.fillText(part, currentX, y); // 绘制高亮显示的文本
+                        currentX += ctx.measureText(part).width; // 更新当前X坐标
+                    } else {
+                        currentX += ctx.measureText(part).width; // 更新当前X坐标
+                    }
+                    if (part === '】') {
+                        isHighlight = false;
+                    }
+                });
+            }
+        }
+    }
+}
+function downloadImage() {
+    let canvas = $('#canvas')[0];
+    canvas.toBlob(function(blob) {
+        saveAs(blob, `魔裁文本框表情-${Date.now()}.png`);
+    });
+}
+function checkConfigs(direct=false, chara_meta_yaml="", text_configs_yaml="", backgrounds_yaml="", fonts_yaml="") {
+    if (direct) {
+        if (chara_meta_yaml == "" || text_configs_yaml == "" || backgrounds_yaml == "" || fonts_yaml == "") {
+            $.when(
+                $.get("./config/chara_meta.yml", function(data) {
+                    chara_meta_yaml = data;
+                }).fail(function(e) {
+                    console.warn("读取 chara_meta.yml 失败：", e);
+                    checkConfigs(false);
+                }),
+                $.get("./config/text_configs.yml", function(data) {
+                    text_configs_yaml = data;
+                }).fail(function(e) {
+                    console.warn("读取 text_configs.yml 失败：", e);
+                    checkConfigs(false);
+                }),
+                $.get("./config/backgrounds.yml", function(data) {
+                    backgrounds_yaml = data;
+                }).fail(function(e) {
+                    console.warn("读取 backgrounds.yml 失败：", e);
+                    checkConfigs(false);
+                }),
+                $.get("./config/fonts.yml", function(data) {
+                    fonts_yaml = data;
+                }).fail(function(e) {
+                    console.warn("读取 fonts.yml 失败：", e);
+                    checkConfigs(false);
+                })
+            ).done(function() {
+                if (chara_meta_yaml == "" || text_configs_yaml == "" || backgrounds_yaml == "" || fonts_yaml == "") {
+                    console.info("未能通过 YAML 直读加载配置，尝试从本地存储加载。");
+                    checkConfigs(false);
+                } else {
+                    checkConfigs(true, chara_meta_yaml, text_configs_yaml, backgrounds_yaml, fonts_yaml);
+                }
+            });
+        }
+    } else {
+        chara_meta_yaml = localStorage.getItem("9nine_chara_meta") ?? "";
+        text_configs_yaml = localStorage.getItem("9nine_text_configs") ?? "";
+        backgrounds_yaml = localStorage.getItem("9nine_backgrounds") ?? "";
+        fonts_yaml = localStorage.getItem("9nine_fonts") ?? "";
+    }
+
+    characters = chara_meta_yaml ? jsyaml.load(chara_meta_yaml)['characters'] : {};
+    text_configs = text_configs_yaml ? jsyaml.load(text_configs_yaml)['text_configs'] : {};
+    backgrounds = backgrounds_yaml ? jsyaml.load(backgrounds_yaml)['backgrounds'] : {};
+    fonts = fonts_yaml ? jsyaml.load(fonts_yaml)['fonts'] : {};
+    $('#chara_meta').val(chara_meta_yaml);
+    $('#text_configs').val(text_configs_yaml);
+    $('#backgrounds').val(backgrounds_yaml);
+    $('#fonts').val(fonts_yaml);
+    if (Object.keys(characters).length > 0) {
+        for (const [key, value] of Object.entries(characters)) {
+            value.font = value.font.replace(".ttf", "");
+        }
+        $('#chara_meta-indicator').html(`<span class="text-success">已加载 ${Object.keys(characters).length} 条${direct ? "（YAML 直读）" : ""}</span>`);
+    } else {
+        $('#chara_meta-indicator').html('<span class="text-danger">未加载</span>');
+    }
+    if (Object.keys(text_configs).length > 0) {
+        $('#text_configs-indicator').html(`<span class="text-success">已加载 ${Object.keys(text_configs).length} 条${direct ? "（YAML 直读）" : ""}</span>`);
+    } else {
+        $('#text_configs-indicator').html('<span class="text-danger">未加载</span>');
+    }
+    if (Object.keys(backgrounds).length > 0) {
+        $('#backgrounds-indicator').html(`<span class="text-success">已加载 ${Object.keys(backgrounds).length} 条${direct ? "（YAML 直读）" : ""}</span>`);
+    } else {
+        $('#backgrounds-indicator').html('<span class="text-danger">未加载</span>');
+    }
+    if (Object.keys(fonts).length > 0) {
+        $('#fonts-indicator').html(`<span class="text-success">已加载 ${Object.keys(fonts).length} 条${direct ? "（YAML 直读）" : ""}</span>`);
+    } else {
+        $('#fonts-indicator').html('<span class="text-danger">未加载</span>');
+    }
+    
+    $('ul.nav.nav-tabs.card-header-tabs li, ul.nav.nav-tabs.card-header-tabs li > a').removeClass("active");
+    if (Object.keys(characters).length > 0 && Object.keys(text_configs).length > 0) {
+        initBackgrounds();
+        initCharacters();
+        initEmotions(OPTION_DEFAULTS.chara);
+        initFonts();
+        $('[data-bs-toggle="tooltip"]').tooltip();
+        $('ul.nav.nav-tabs.card-header-tabs li').removeAttr("hidden");
+        $('ul.nav.nav-tabs.card-header-tabs li:nth-child(2), ul.nav.nav-tabs.card-header-tabs li:nth-child(2) > a').addClass("active");
+        $('.tab-pane').removeClass("active show");
+        $('#tabs-chara').addClass("active show");
+        $('#preview_div').show();
+        if (direct) {
+            $('#configs_upload_div').html("已经通过 YAML 文件直接加载配置，无需上传。");
+        }
+    } else {
+        $('ul.nav.nav-tabs.card-header-tabs li').attr("hidden", true);
+        $('ul.nav.nav-tabs.card-header-tabs li:last-child').removeAttr("hidden");
+        $('ul.nav.nav-tabs.card-header-tabs li:last-child, ul.nav.nav-tabs.card-header-tabs li:last-child > a').addClass("active");
+        $('.tab-pane').removeClass("active show");
+        $('#tabs-settings').addClass("active show");
+        $('#preview_div').hide();
+    }
+}
+function resetConfigs() {
+    localStorage.removeItem("9nine_chara_meta");
+    localStorage.removeItem("9nine_text_configs");
+    localStorage.removeItem("9nine_backgrounds");
+    localStorage.removeItem("9nine_fonts");
+    checkConfigs();
+}
+function init() {
+    checkConfigs(true);
+}
+$(document).ready(function() {
+    init();
+    $('input[name="configs"]').on('change', function(event) {
+        const files = event.target.files;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                try {
+                    const data = jsyaml.load(content);
+                    if (file.name === "chara_meta.yml") {
+                        $('#chara_meta').val(content);
+                        localStorage.setItem("9nine_chara_meta", content);
+                    } else if (file.name === "text_configs.yml") {
+                        $('#text_configs').val(content);
+                        localStorage.setItem("9nine_text_configs", content);
+                    } else if (file.name === "backgrounds.yml") {
+                        $('#backgrounds').val(content);
+                        localStorage.setItem("9nine_backgrounds", content);
+                    } else if (file.name === "fonts.yml") {
+                        $('#fonts').val(content);
+                        localStorage.setItem("9nine_fonts", content);
+                    } else {
+                        console.info("已跳过未知的配置文件：" + file.name);
+                    }
+                } catch (error) {
+                    console.warn("解析 " + file.name + " 失败：" + error);
+                }
+                checkConfigs();
+            };
+            reader.readAsText(file);
+        }
+    });
+    $('input[name="custom_backgrounds"]').on('change', function(event) {
+        const files = event.target.files;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                try {
+                    $("#custom_backgrounds_div").append(`
+                    <div class="col-6 col-md-3">
+                        <label class="form-imagecheck mb-2">
+                            <input name="background" type="radio" value="custom" class="form-imagecheck-input" onchange="updateCanvas()" onclick="updateCanvas()"/>
+                            <span class="form-imagecheck-figure">
+                                <img class="form-imagecheck-image" src="${content}"/>
+                            </span>
+                        </label>
+                    </div>
+                    `);
+                } catch (error) {
+                    console.warn("解析 " + file.name + " 失败：" + error);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    $("input[name='text_font_size']").on("input change", function(){
+        $("input[name='text_font_size']").val($(this).val());
+        updateCanvas();
+    });
+});
