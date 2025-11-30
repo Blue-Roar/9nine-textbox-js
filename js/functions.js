@@ -31,6 +31,7 @@ function initBackgrounds() {
     backgrounds_div.empty();
     let background_variants_div = $("#background_variants_div");
     background_variants_div.empty();
+    background_variants_div.html(`<div class="alert alert-info" role="alert" id="background_variants_alert">当前背景无可用变体</div>`);
 
     for (const [key, value] of Object.entries(backgrounds)) {
         let bg_html = `
@@ -238,8 +239,16 @@ function updateCanvas() {
         $('[data-background]').hide();
         $(`[data-background="${backgroundId}"]`).show();
         let background = $('input[name="background"]:checked').next().children()[0];
-        if (backgrounds[backgroundId].variants && Object.keys(backgrounds[backgroundId].variants).includes($('input[name="background-variant"]:checked').val())) {
-            background = $('input[name="background-variant"]:checked').next().children()[0];
+        if (backgrounds[backgroundId].variants) {
+            $('#background_variants_alert').hide();
+            if (Object.keys(backgrounds[backgroundId].variants).includes($('input[name="background-variant"]:checked').val())) {
+                background = $('input[name="background-variant"]:checked').next().children()[0];
+            } else {
+                $(`[data-background="${backgroundId}"] input[name="background-variant"]`).first().click();
+            }
+        } else {
+            $('#background_variants_alert').show();
+            if ($('input[name="background-variant"]:checked').val()) $('input[name="background-variant"]:checked')[0].checked = false;
         }
         let dest=[0,0];
         let size=[0,0];
