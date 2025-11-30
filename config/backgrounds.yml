@@ -1,130 +1,179 @@
 backgrounds:
-  bg001a:
+  bg001:
     name: 白蛇九十九神社
     file: large_bg001a.png
-  bg001c:
-    name: 白蛇九十九神社(夜晚)
-    file: large_bg001c.png
-  bg002a:
+    variants: 
+      bg001a:
+        name: 白天
+        file: large_bg001a.png
+      bg001c:
+        name: 夜晚
+        file: large_bg001c.png
+  bg002:
     name: 白蛇九十九神社附近
     file: large_bg002a.png
-  bg002c:
-    name: 白蛇九十九神社附近(夜晚)
-    file: large_bg002c.png
-  bg003a:
+    variants:
+      bg002a:
+        name: 白天
+        file: large_bg002a.png
+      bg002c:
+        name: 夜晚
+        file: large_bg002c.png
+  bg003:
     name: 白巳津川站
     file: large_bg003a.png
-  bg003b:
-    name: 白巳津川站(黄昏)
-    file: large_bg003b.png
-  bg003c:
-    name: 白巳津川站(夜晚)
-    file: large_bg003c.png
-  bg004a:
+    variants:
+      bg003a:
+        name: 白天
+        file: large_bg003a.png
+      bg003b:
+        name: 黄昏
+        file: large_bg003b.png
+      bg003c:
+        name: 夜晚
+        file: large_bg003c.png
+  bg004:
     name: 白巳津川站近郊
     file: large_bg004a.png
-  bg004b:
-    name: 白巳津川站近郊(黄昏)
-    file: large_bg004b.png
-  bg004c:
-    name: 白巳津川站近郊(夜晚)
-    file: large_bg004c.png
-  bg005a:
-    name: 白泉学园校门
-    file: large_bg005a.png
-  bg006a:
-    name: 白泉学园走廊
-    file: large_bg006a.png
-  bg006b:
-    name: 白泉学园走廊(黄昏)
-    file: large_bg006b.png
-  bg006e:
-    name: 白泉学园走廊(火焰)
-    file: large_bg006e.png
-  bg007a:
-    name: 白泉学园教室
-    file: large_bg007a.png
-  bg007b:
-    name: 白泉学园教室(黄昏)
-    file: large_bg007b.png
-  bg008a:
-    name: 翔的公寓入口
-    file: large_bg008a.png
-  bg008b:
-    name: 翔的公寓入口(黄昏)
-    file: large_bg008b.png
-  bg008c:
-    name: 翔的公寓入口(夜晚)
-    file: large_bg008c.png
-  bg009a:
-    name: 翔的房间
-    file: large_bg009a.png
-  bg009b:
-    name: 翔的房间(黄昏)
-    file: large_bg009b.png
-  bg009c:
-    name: 翔的房间(夜晚)
-    file: large_bg009c.png
-  bg010a:
-    name: 翔的家·厨房
-    file: large_bg010a.png
-  bg010b:
-    name: 翔的家·厨房(黄昏)
-    file: large_bg010b.png
-  bg010c:
-    name: 翔的家·厨房(夜晚)
-    file: large_bg010c.png
-  bg011a:
-    name: Nine Ball 咖啡店
-    file: large_bg011a.png
-  bg011b:
-    name: Nine Ball 咖啡店(黄昏)
-    file: large_bg011b.png
-  bg011c:
-    name: Nine Ball 咖啡店(夜晚)
-    file: large_bg011c.png
-  bg012a:
-    name: Nine Ball 咖啡店内
-    file: large_bg012a.png
-  bg012b:
-    name: Nine Ball 咖啡店内(黄昏)
-    file: large_bg012b.png
-  bg012c:
-    name: Nine Ball 咖啡店内(夜晚)
-    file: large_bg012c.png
-  bg013a:
-    name: ROUND2
-    file: large_bg013a.png
-  bg013b:
-    name: ROUND2(夜晚)
-    file: large_bg013b.png
-  bg014a:
+    variants:
+      bg004a:
+        name: 白天
+        file: large_bg004a.png
+      bg004b:
+        name: 黄昏
+        file: large_bg004b.png
+      bg004c:
+        name: 夜晚
+        file: large_bg004c.png
+  bg014:
     name: 白巳津川公园
     file: large_bg014a.png
-  bg014b:
-    name: 白巳津川公园(黄昏)
-    file: large_bg014b.png
-  bg014c:
-    name: 白巳津川公园(夜晚)
-    file: large_bg014c.png
-  bg015a:
+    variants:
+      bg014a:
+        name: 白天
+        file: large_bg014a.png
+      bg014b:
+        name: 黄昏
+        file: large_bg014b.png
+      bg014c:
+        name: 夜晚
+        file: large_bg014c.png
+  bg005:
+    name: 白泉学园校门
+    file: large_bg005a.png
+  bg006:
+    name: 白泉学园走廊
+    file: large_bg006a.png
+    variants:
+      bg006a:
+        name: 白天
+        file: large_bg006a.png
+      bg006b:
+        name: 黄昏
+        file: large_bg006b.png
+      bg006e:
+        name: 火焰
+        file: large_bg006e.png
+  bg007:
+    name: 白泉学园教室
+    file: large_bg007a.png
+    variants:
+      bg007a:
+        name: 白天
+        file: large_bg007a.png
+      bg007b:
+        name: 黄昏
+        file: large_bg007b.png
+  bg015:
     name: 白泉学园中庭
     file: large_bg015a.png
-  bg016a:
+  bg008:
+    name: 新海翔的家·公寓入口
+    file: large_bg008a.png
+    variants:
+      bg008a:
+        name: 白天
+        file: large_bg008a.png
+      bg008b:
+        name: 黄昏
+        file: large_bg008b.png
+      bg008c:
+        name: 夜晚
+        file: large_bg008c.png
+  bg009:
+    name: 新海翔的家·翔的房间
+    file: large_bg009a.png
+    variants:
+      bg009a:
+        name: 白天
+        file: large_bg009a.png
+      bg009b:
+        name: 黄昏
+        file: large_bg009b.png
+      bg009c:
+        name: 夜晚
+        file: large_bg009c.png
+  bg010:
+    name: 新海翔的家·厨房
+    file: large_bg010a.png
+    variants:
+      bg010a:
+        name: 白天
+        file: large_bg010a.png
+      bg010b:
+        name: 黄昏
+        file: large_bg010b.png
+      bg010c:
+        name: 夜晚
+        file: large_bg010c.png
+  bg011:
+    name: Nine Ball 咖啡店外
+    file: large_bg011a.png
+    variants:
+      bg011a:
+        name: 白天
+        file: large_bg011a.png
+      bg011b:
+        name: 黄昏
+        file: large_bg011b.png
+      bg011c:
+        name: 夜晚
+        file: large_bg011c.png
+  bg012:
+    name: Nine Ball 咖啡店内
+    file: large_bg012a.png
+    variants:
+      bg012a:
+        name: 白天
+        file: large_bg012a.png
+      bg012b:
+        name: 黄昏
+        file: large_bg012b.png
+      bg012c:
+        name: 夜晚
+        file: large_bg012c.png
+  bg016:
     name: 家庭餐厅
     file: large_bg016a.png
-  bg017a:
-    name: 神秘大楼
-    file: large_bg017a.png
-  bg018a:
+  bg018:
     name: 购物中心
     file: large_bg018a.png
-  bg100a:
+  bg013:
+    name: ROUND2
+    file: large_bg013a.png
+  bg017:
+    name: 神秘大楼
+    file: large_bg017a.png
+  bg100:
     name: 天空
     file: large_bg100a.png
-  bg100b:
-    name: 天空(黄昏)
-    file: large_bg100b.png
-  bg100c:
-    name: 天空(夜晚)
-    file: large_bg100c.png
+    variants:
+      bg100a:
+        name: 白天
+        file: large_bg100a.png
+      bg100b:
+        name: 黄昏
+        file: large_bg100b.png
+      bg100c:
+        name: 夜晚
+        file: large_bg100c.png

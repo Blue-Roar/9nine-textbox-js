@@ -11,7 +11,7 @@ const TEXT_OVER = [2339,800];  // 文本范围右下角位置
 const SHADOW_OFFSET = [2, 2]; // 阴影偏移量
 const SHADOW_COLOR = [0, 0, 0]; // 黑色阴影
 const OPTION_DEFAULTS = {
-    "background": "bg015a",
+    "background": "bg015",
     "chara": "sophitia",
     "font": "default",
     "stretch_image": "zoom_x"
@@ -29,6 +29,8 @@ function initBackgrounds() {
     // 渲染背景选择
     let backgrounds_div = $("#backgrounds_div");
     backgrounds_div.empty();
+    let background_variants_div = $("#background_variants_div");
+    background_variants_div.empty();
 
     for (const [key, value] of Object.entries(backgrounds)) {
         let bg_html = `
@@ -42,6 +44,21 @@ function initBackgrounds() {
         </div>
         `;
         backgrounds_div.append(bg_html);
+        if (value.variants) {
+            for (const [key2, value2] of Object.entries(value.variants)) {
+                let bg_html = `
+                <div class="col-6 col-md-3" data-background="${key}">
+                    <label class="form-imagecheck mb-2">
+                        <input name="background-variant" type="radio" value="${key2}" class="form-imagecheck-input" onchange="updateCanvas()" onclick="updateCanvas()"/>
+                        <span class="form-imagecheck-figure" title="${value2.name}" data-bs-toggle="tooltip">
+                            <img class="form-imagecheck-image" src="./assets/background/${value2.file}"/>
+                        </span>
+                    </label>
+                </div>
+                `;
+                background_variants_div.append(bg_html);
+            }
+        }
     }
 
     let background_options_div = $("#background_options_div");
@@ -212,12 +229,18 @@ function buildLocalFonts() {
 function updateCanvas() {
     let canvas = $('#canvas')[0];
     let ctx = canvas.getContext("2d");
+    let backgroundId = $('input[name="background"]:checked').val();
 
     // 清空画布
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    if ($('input[name="background"]:checked').val()) {
+    if (backgroundId) {
+        $('[data-background]').hide();
+        $(`[data-background="${backgroundId}"]`).show();
         let background = $('input[name="background"]:checked').next().children()[0];
+        if (backgrounds[backgroundId].variants && Object.keys(backgrounds[backgroundId].variants).includes($('input[name="background-variant"]:checked').val())) {
+            background = $('input[name="background-variant"]:checked').next().children()[0];
+        }
         let dest=[0,0];
         let size=[0,0];
         let scale=1;
