@@ -239,16 +239,21 @@ function updateCanvas() {
         $('[data-background]').hide();
         $(`[data-background="${backgroundId}"]`).show();
         let background = $('input[name="background"]:checked').next().children()[0];
-        if (backgrounds[backgroundId].variants) {
-            $('#background_variants_alert').hide();
-            if (Object.keys(backgrounds[backgroundId].variants).includes($('input[name="background-variant"]:checked').val())) {
-                background = $('input[name="background-variant"]:checked').next().children()[0];
+        if (backgroundId != "custom") {
+            $('#background_variants_div').parent().show();
+            if (backgrounds[backgroundId] && backgrounds[backgroundId].variants) {
+                $('#background_variants_alert').hide();
+                if (Object.keys(backgrounds[backgroundId].variants).includes($('input[name="background-variant"]:checked').val())) {
+                    background = $('input[name="background-variant"]:checked').next().children()[0];
+                } else {
+                    $(`[data-background="${backgroundId}"] input[name="background-variant"]`).first().click();
+                }
             } else {
-                $(`[data-background="${backgroundId}"] input[name="background-variant"]`).first().click();
+                $('#background_variants_alert').show();
+                if ($('input[name="background-variant"]:checked').val()) $('input[name="background-variant"]:checked')[0].checked = false;
             }
         } else {
-            $('#background_variants_alert').show();
-            if ($('input[name="background-variant"]:checked').val()) $('input[name="background-variant"]:checked')[0].checked = false;
+            $('#background_variants_div').parent().hide();
         }
         let dest=[0,0];
         let size=[0,0];
